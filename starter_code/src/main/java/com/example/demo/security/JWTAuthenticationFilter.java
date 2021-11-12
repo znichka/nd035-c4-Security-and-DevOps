@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,14 +46,15 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             log.info(String.format("Authentication attempt for a user with username '%s'", credentials.getUsername()));
 
             User user = userRepository.findByUsername(credentials.getUsername());
+            String salt = user == null? "":user.getSalt();
 
             return authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             credentials.getUsername(),
-                            credentials.getPassword()+user.getSalt(),
+                            credentials.getPassword()+salt,
                             new ArrayList<>()));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new AuthenticationCredentialsNotFoundException("Error");
         }
     }
 
